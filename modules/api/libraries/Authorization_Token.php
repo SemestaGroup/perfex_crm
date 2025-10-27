@@ -13,6 +13,11 @@ use Firebase\JWT\Key as api_Key;
 class Authorization_Token 
 {
     /**
+     * CodeIgniter instance
+     */
+    protected $CI;
+
+    /**
      * Token Key
      */
     protected $token_key;

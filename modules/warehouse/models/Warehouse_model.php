@@ -1,5 +1,7 @@
 <?php
 
+use app\services\utilities\Arr;
+
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
@@ -8,6 +10,29 @@ defined('BASEPATH') or exit('No direct script access allowed');
 class Warehouse_model extends App_Model {
 	public function __construct() {
 		parent::__construct();
+	}
+
+	/**
+	 * Filter array data to only include columns that exist in the given DB table
+	 * This prevents "Unknown column" errors when inserting arrays with extra keys
+	 * @param string $table without prefix (e.g. 'customers_groups')
+	 * @param array $data
+	 * @return array filtered
+	 */
+	private function _filter_data_for_table($table, $data) {
+		$table_full = db_prefix() . $table;
+		// ensure table exists
+		if (!method_exists($this->db, 'table_exists') || !$this->db->table_exists($table_full)) {
+			return [];
+		}
+		$fields = $this->db->list_fields($table_full);
+		$filtered = [];
+		foreach ($data as $k => $v) {
+			if (in_array($k, $fields)) {
+				$filtered[$k] = $v;
+			}
+		}
+		return $filtered;
 	}
 
 	/**
@@ -646,11 +671,31 @@ class Warehouse_model extends App_Model {
 				$arr_temp['note'] = str_replace('|/\|', ', ', $commodity_group_type_value);
 
 				if ($id == false && $flag_empty == 1) {
-					$this->db->insert(db_prefix() . 'items_groups', $arr_temp);
-					$insert_id = $this->db->insert_id();
-					if ($insert_id) {
-						$results++;
-					}
+						// Build per-table payloads by filtering to the actual columns present in each table.
+						$items_data = $this->_filter_data_for_table('items_groups', $arr_temp);
+						$customers_data = $this->_filter_data_for_table('customers_groups', $arr_temp);
+
+						$items_success = false;
+						$customers_success = false;
+
+						if (!empty($items_data)) {
+							$this->db->insert(db_prefix() . 'items_groups', $items_data);
+							if ($this->db->affected_rows() > 0) {
+								$items_success = true;
+							}
+						}
+
+						if (!empty($customers_data)) {
+							$this->db->insert(db_prefix() . 'customers_groups', $customers_data);
+							if ($this->db->affected_rows() > 0) {
+								$customers_success = true;
+							}
+						}
+
+						// Count as success if at least one insert succeeded
+						if ($items_success || $customers_success) {
+							$results++;
+						}
 				}
 				if (is_numeric($id) && $flag_empty == 1) {
 					$this->db->where('id', $id);
@@ -3116,12 +3161,14 @@ class Warehouse_model extends App_Model {
 		/*add data tblitem*/
 		$data['rate'] = reformat_currency_j($data['rate']);
 		$data['purchase_price'] = reformat_currency_j($data['purchase_price']);
-
-		/*create sku code*/
-
-		//data sku_code = group_character.sub_code.commodity_str_betwen.next_commodity_id; // X_X_000.id auto increment
-		$data['sku_code'] = $this->create_sku_code($data['group_id'], $data['sub_group']);
-		/*create sku code*/
+		$groups = Arr::pull($data, 'group_id') ?? [];
+		$data['sku_code'] = $this->create_sku_code($data['sub_group'], $data['sub_group']);
+		
+		$data['group_id'] = '';
+		foreach ($groups as $group) {
+			$data['group_id'] .= $group . ',';
+		}
+		$data['group_id'] = rtrim($data['group_id'], ',');
 
 		$this->db->insert(db_prefix() . 'items', $data);
 		$insert_id = $this->db->insert_id();

@@ -64,17 +64,20 @@
                    
                     </div>
                       <?php render_datatable(array(
-                        _l('_images'),
+                        // _l('_images'),
+                        _l('commodity_type'),
                         _l('commodity_code'),
-                        _l('commodity_name'),
-                        _l('group_name'),
+                        _l('sku_code'),
+                        _l('sku_name'),
+                        // _l('commodity_name'),
+                        _l('brand'),
                         _l('warehouse_name'),
                         _l('inventory_number'),
                         _l('unit_name'),
                         _l('rate'),
                         _l('purchase_price'),
-                        _l('tax'),
-                        _l('status'),
+                        // _l('tax'),
+                        // _l('status'),
                         ),'table_commodity_list',['proposal_sm' => 'proposal_sm']); ?>
                </div>
             </div>
@@ -172,9 +175,9 @@
                   <div role="tabpanel" class="tab-pane active" id="interview_infor">
 
                             <div class="row">
-                                <div class="col-md-6">
-                                    <?php echo render_input('commodity_code', 'commodity_code'); ?>
-                                </div>
+                              <div class="col-md-6">
+                                <?php echo render_input('commodity_code', 'commodity_code', '', 'text'); ?>
+                              </div>
                                 <div class="col-md-6">
                                   <?php echo render_input('description', 'commodity_name'); ?>
                                 </div>
@@ -204,11 +207,11 @@
 
                             <div class="row">
                                 <div class="col-md-6">
-                                     <?php echo render_select('commodity_type',$commodity_types,array('commodity_type_id','commondity_name'),'commodity_type'); ?>
+                                     <?php echo render_select('commodity_type',$commodity_types,array('commodity_type_id','commondity_name'),'commodity_type', '', [], [], '', '', false); ?>
 
                                 </div>
                                 <div class="col-md-6">
-                                     <?php echo render_select('tax',$taxes,array('id','name'),'taxes'); ?>
+                                     <?php echo render_select('tax',$taxes,array('id','name'),'taxes', '', [], [], '', '', false); ?>
                                 </div>
                             </div>
 
@@ -216,10 +219,28 @@
                              <div class="row">
                               
                                 <div class="col-md-6">
-                                     <?php echo render_select('group_id',$commodity_groups,array('id','name'),'commodity_group'); ?>
+                                      <?php $selected = [];
+                                      if(isset($commodity_groups)){
+                                        foreach($commodity_groups as $group){
+                                          array_push($selected, $group['id']);
+                                        }
+                                        echo render_select('group_id[]', 
+                                            $commodity_groups,
+                                            ['id','name'],
+                                            'commodity_group',
+                                            $selected,
+                                            ['multiple' => true, 'data-actions-box' => true],
+                                            [],
+                                            '',
+                                            '',
+                                            false
+                                        );
+                                      }
+                                      ?>
+                                     <!-- <?php echo render_select('group_id',$commodity_groups,array('id','name'),'commodity_group'); ?> -->
                                 </div>
                                  <div class="col-md-6">
-                                     <?php echo render_select('sub_group',$sub_groups,array('id','sub_group_name'),'sub_group'); ?>
+                                     <?php echo render_select('sub_group',$sub_groups,array('id','sub_group_name'),'sub_group', '', [], [], '', '', false); ?>
                                 </div>
                             </div>
 
@@ -399,5 +420,28 @@
 
 <?php init_tail(); ?>
 <?php require 'modules/warehouse/assets/js/commodity_list_js.php';?>
+
+<script>
+  (function($){
+    'use strict';
+    $(document).ready(function(){
+      function updateCommodityCode(){
+        var desc = $('#description').val() || '';
+        // trim and replace one-or-more whitespace with single hyphen
+        var code = desc.trim().replace(/\s+/g, '-');
+        $('#commodity_code').val(code);
+        // keep it disabled in case something toggles it
+        // $('#commodity_code').prop('disabled', true);
+      }
+
+      // update on input and change events
+      $(document).on('input change', '#description', updateCommodityCode);
+
+      // initialize on load
+      updateCommodityCode();
+    });
+  })(jQuery);
+</script>
+
 </body>
 </html>

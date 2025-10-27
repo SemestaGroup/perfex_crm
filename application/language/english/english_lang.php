@@ -2713,12 +2713,21 @@ $lang['deliveries']                                         = 'Deliveries';
 $lang['expeditions_list']                                   = 'Expeditions List';
 $lang['delivering_list']                                    = 'Delivering List';
 $lang['cities_list']                                        = 'Cities List';
+$lang['add_city']                                           = 'Add City';
+$lang['add_kecamatan']                                      = 'Add Kecamatan';
 $lang['expedition_code']                                    = 'Expedition Code';
 $lang['expedition_name']                                    = 'Expedition Name';
 $lang['weight_minimum']                                     = 'Weight Minimum (kg)';
 $lang['price_per_kg']                                       = 'Price per kg';
 $lang['import_expeditions']                                 = 'Import Expeditions';
-$lang['add_expeditions']                                    = 'Add Expeditions';
+$lang['add_expedition']                                     = 'Add Expedition';
+$lang['edit_expedition']                                    = 'Edit Expedition';
+$lang['delete_expedition']                                  = 'Delete Expedition';
+$lang['website']                                            = 'Website';
+$lang['no']                                                 = 'No.';
+$lang['province']                                           = 'Provinsi';
+$lang['kabupaten']                                          = 'Kabupaten';
+$lang['kecamatan']                                          = 'Kecamatan';
 
 
 // don't translate these, already translated

@@ -3,19 +3,21 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 $aColumns = [
-	db_prefix() . 'items.id',
+	db_prefix() . 'ware_commodity_type.commondity_name',
 	'commodity_code',
-	'description',
+	// 'description',
+	'sku_code',
+	'sku_name',
 	'group_id',
 	db_prefix() . 'items.warehouse_id',
 	db_prefix() . 'inventory_manage.inventory_number',
 	'unit_id',
 	'rate',
 	'purchase_price',
-	'tax',
-	'origin',
+	// 'tax',
+	// 'origin',
 ];
-$sIndexColumn = 'id';
+$sIndexColumn = db_prefix() . 'items.id';
 $sTable = db_prefix() . 'items';
 
 $where = [];
@@ -25,14 +27,17 @@ $commodity_ft = $this->ci->input->post('commodity_ft');
 $alert_filter = $this->ci->input->post('alert_filter');
 
 if (!isset($warehouse_ft) && !isset($commodity_ft) && !isset($alert_filter) && ($alert_filter == '')) {
-	$join = ['LEFT JOIN ' . db_prefix() . 'inventory_manage ON ' . db_prefix() . 'inventory_manage.commodity_id = ' . db_prefix() . 'items.id'];
+	$join = [
+		'LEFT JOIN ' . db_prefix() . 'inventory_manage ON ' . db_prefix() . 'inventory_manage.commodity_id = ' . db_prefix() . 'items.id',
+		'LEFT JOIN ' . db_prefix() . 'ware_commodity_type ON ' . db_prefix() . 'ware_commodity_type.commodity_type_id = ' . db_prefix() . 'items.commodity_type',
+	];
 } else {
 
 	$join = [
-
 		'LEFT JOIN ' . db_prefix() . 'inventory_manage ON ' . db_prefix() . 'inventory_manage.commodity_id = ' . db_prefix() . 'items.id',
-
+		'LEFT JOIN ' . db_prefix() . 'ware_commodity_type ON ' . db_prefix() . 'ware_commodity_type.commodity_type_id = ' . db_prefix() . 'items.commodity_type',
 	];
+
 }
 
 if (isset($warehouse_ft)) {
@@ -104,19 +109,19 @@ if (!isset($warehouse_ft) && !isset($commodity_ft) && ($alert_filter == '')) {
 		for ($i = 0; $i < count($aColumns); $i++) {
 			$_data = $aRow[$aColumns[$i]];
 			/*get commodity file*/
-			$arr_images = $this->ci->warehouse_model->get_warehourse_attachments($aRow['id']);
-			if (count($arr_images) > 0) {
+			// $arr_images = $this->ci->warehouse_model->get_warehourse_attachments($aRow['id']);
+			// if (count($arr_images) > 0) {
 
-				if (file_exists(WAREHOUSE_ITEM_UPLOAD . $arr_images[0]['rel_id'] . '/' . $arr_images[0]['file_name'])) {
-					$_data = '<img class="images_w_table" src="' . site_url('modules/warehouse/uploads/item_img/' . $arr_images[0]['rel_id'] . '/' . $arr_images[0]['file_name']) . '" alt="' . $arr_images[0]['file_name'] . '" >';
-				} else {
-					$_data = '<img class="images_w_table" src="' . site_url('modules/purchase/uploads/item_img/' . $arr_images[0]['rel_id'] . '/' . $arr_images[0]['file_name']) . '" alt="' . $arr_images[0]['file_name'] . '" >';
-				}
+			// 	if (file_exists(WAREHOUSE_ITEM_UPLOAD . $arr_images[0]['rel_id'] . '/' . $arr_images[0]['file_name'])) {
+			// 		$_data = '<img class="images_w_table" src="' . site_url('modules/warehouse/uploads/item_img/' . $arr_images[0]['rel_id'] . '/' . $arr_images[0]['file_name']) . '" alt="' . $arr_images[0]['file_name'] . '" >';
+			// 	} else {
+			// 		$_data = '<img class="images_w_table" src="' . site_url('modules/purchase/uploads/item_img/' . $arr_images[0]['rel_id'] . '/' . $arr_images[0]['file_name']) . '" alt="' . $arr_images[0]['file_name'] . '" >';
+			// 	}
 
-			} else {
+			// } else {
 
-				$_data = '<img class="images_w_table" src="' . site_url('modules/warehouse/uploads/nul_image.jpg') . '" alt="nul_image.jpg">';
-			}
+			// 	$_data = '<img class="images_w_table" src="' . site_url('modules/warehouse/uploads/nul_image.jpg') . '" alt="nul_image.jpg">';
+			// }
 
 			if ($aColumns[$i] == 'commodity_code') {
 				$code = '<a href="' . admin_url('warehouse/view_commodity_detail/' . $aRow['id']) . '">' . $aRow['commodity_code'] . '</a>';
@@ -134,18 +139,26 @@ if (!isset($warehouse_ft) && !isset($commodity_ft) && ($alert_filter == '')) {
 				$code .= '</div>';
 
 				$_data = $code;
+			} elseif ($aColumns[$i] == 'sku_code') {
+				$_data = $aRow['sku_code'];
 
-			} elseif ($aColumns[$i] == 'description') {
+			} elseif ($aColumns[$i] == 'sku_name') {
 
 				if (get_status_inventory($aRow['id'], $aRow['inventory_number'])) {
-					$_data = '<a href="#" onclick="show_detail_item(this);return false;" data-name="' . $aRow['description'] . '"  data-warehouse_id="' . $aRow['warehouse_id'] . '" data-commodity_id="' . $aRow['commodity_id'] . '" data-expiry_date="' . $aRow['expiry_date'] . '" >' . $aRow['description'] . '</a>';
+					$_data = '<a href="#" onclick="show_detail_item(this);return false;" data-name="' . $aRow['description'] . '"  data-warehouse_id="' . $aRow['warehouse_id'] . '" data-commodity_id="' . $aRow['commodity_id'] . '" data-expiry_date="' . $aRow['expiry_date'] . '" >' . $aRow['sku_name'] . '</a>';
 				} else {
 
-					$_data = '<a href="#" class="text-danger"  onclick="show_detail_item(this);return false;" data-name="' . $aRow['description'] . '" data-warehouse_id="' . $aRow['warehouse_id'] . '" data-commodity_id="' . $aRow['commodity_id'] . '" data-expiry_date="' . $aRow['expiry_date'] . '" >' . $aRow['description'] . '</a>';
+					$_data = '<a href="#" class="text-danger"  onclick="show_detail_item(this);return false;" data-name="' . $aRow['description'] . '" data-warehouse_id="' . $aRow['warehouse_id'] . '" data-commodity_id="' . $aRow['commodity_id'] . '" data-expiry_date="' . $aRow['expiry_date'] . '" >' . $aRow['sku_name'] . '</a>';
 				}
 
 			} elseif ($aColumns[$i] == 'group_id') {
-				$_data = get_group_name($aRow['group_id']) != null ? get_group_name($aRow['group_id'])->name : '';
+				// buat agar menampilkan banyak group pada barang yang sama dipisahkan koma
+				$groups = explode(',', $aRow['group_id']);
+				$_data = '';
+				foreach ($groups as $group) {
+					$_data .= get_group_name($group) != null ? get_group_name($group)->name . ', ' : '';
+				}
+				$_data = rtrim($_data, ', ');
 			} elseif ($aColumns[$i] == db_prefix() . 'items.warehouse_id') {
 
 				if ($aRow['warehouse_ids'] != '') {
@@ -171,18 +184,16 @@ if (!isset($warehouse_ft) && !isset($commodity_ft) && ($alert_filter == '')) {
 				$_data = app_format_money((float) $aRow['rate'], '');
 			} elseif ($aColumns[$i] == 'purchase_price') {
 				$_data = app_format_money((float) $aRow['purchase_price'], '');
-
-			} elseif ($aColumns[$i] == 'tax') {
-				$_data = get_tax_rate($aRow['tax']) != null ? get_tax_rate($aRow['tax'])->name : '';
-
+			// } elseif ($aColumns[$i] == 'tax') {
+			// 	$_data = get_tax_rate($aRow['tax']) != null ? get_tax_rate($aRow['tax'])->name : '';
 			} elseif ($aColumns[$i] == db_prefix() . 'inventory_manage.inventory_number') {
 				$_data = $aRow['inventory_number'];
 
-			} elseif ($aColumns[$i] == 'origin') {
-				$_data = '';
-			} elseif ($aColumns[$i] == 'sku_name') {
+			// } elseif ($aColumns[$i] == 'origin') {
+			// 	$_data = '';
+			// } elseif ($aColumns[$i] == 'sku_name') {
 
-				$_data = '<a href="' . admin_url('warehouse/view_commodity_detail/' . $aRow['id']) . '" class="btn btn-default btn-icon"><i class="fa fa-eye"></i></a>';
+			// 	$_data = '<a href="' . admin_url('warehouse/view_commodity_detail/' . $aRow['id']) . '" class="btn btn-default btn-icon"><i class="fa fa-eye"></i></a>';
 			}
 
 			$row[] = $_data;
@@ -267,20 +278,20 @@ if (!isset($warehouse_ft) && !isset($commodity_ft) && ($alert_filter == '')) {
 			} elseif ($aColumns[$i] == 'purchase_price') {
 				$_data = app_format_money((float) $aRow['purchase_price'], '');
 
-			} elseif ($aColumns[$i] == 'tax') {
-				$_data = get_tax_rate($aRow['tax']) != null ? get_tax_rate($aRow['tax'])->name : '';
+			// } elseif ($aColumns[$i] == 'tax') {
+			// 	$_data = get_tax_rate($aRow['tax']) != null ? get_tax_rate($aRow['tax'])->name : '';
 
 			} elseif ($aColumns[$i] == db_prefix() . 'inventory_manage.inventory_number') {
 
 				$_data = $aRow['inventory_number'];
-			} elseif ($aColumns[$i] == 'origin') {
-				if (get_status_inventory($aRow['id'], $aRow['inventory_number'])) {
-					$_data = '';
-				} else {
-					$_data = '<span class="label label-tag tag-id-1 label-tab2"><span class="tag">' . _l('unsafe_inventory') . '</span><span class="hide">, </span></span>&nbsp';
-				}
-			} elseif ($aColumns[$i] == 'sku_name') {
-				$_data = '<a href="' . admin_url('warehouse/view_commodity_detail/' . $aRow['id']) . '" class="btn btn-default btn-icon"><i class="fa fa-eye"></i></a>';
+			// } elseif ($aColumns[$i] == 'origin') {
+			// 	if (get_status_inventory($aRow['id'], $aRow['inventory_number'])) {
+			// 		$_data = '';
+			// 	} else {
+			// 		$_data = '<span class="label label-tag tag-id-1 label-tab2"><span class="tag">' . _l('unsafe_inventory') . '</span><span class="hide">, </span></span>&nbsp';
+			// 	}
+			// } elseif ($aColumns[$i] == 'sku_name') {
+			// 	$_data = '<a href="' . admin_url('warehouse/view_commodity_detail/' . $aRow['id']) . '" class="btn btn-default btn-icon"><i class="fa fa-eye"></i></a>';
 			}
 
 			$row[] = $_data;

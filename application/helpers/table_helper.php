@@ -11,9 +11,9 @@ hooks()->add_action('admin_init', function () {
         App_table::new('expenses')->customfieldable('expenses')
     );
 
-    App_table::register(
-        App_table::new('deliveries')->setDbTableName('_ekspedisi')->customfieldable('deliveries')
-    );
+    // App_table::register(
+    //     App_table::new('expeditions')->setDbTableName('_ekspedisi')->customfieldable('expeditions')
+    // );
 
     App_table::register(
         App_table::new('project_expenses')
